@@ -6,13 +6,12 @@ export const createInquiry = async (req, res) => {
     const { name, email, country, message } = req.body;
 
     if (!name || !email || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Name, email, and message are required." 
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and message are required."
       });
     }
 
-    // Save inquiry immediately
     const inquiry = await Inquiry.create({
       name: name.trim(),
       email: email.trim(),
@@ -20,32 +19,36 @@ export const createInquiry = async (req, res) => {
       message: message.trim(),
     });
 
-    // Respond immediately to frontend
-    res.status(201).json({ success: true, message: "Inquiry submitted successfully!" });
+    // Respond immediately
+    res.status(201).json({
+      success: true,
+      message: "Inquiry submitted successfully!"
+    });
 
     // Send emails asynchronously
     setImmediate(async () => {
       try {
-        // Admin email
+        // ADMIN EMAIL
         await sendEmail({
-          to: process.env.ADMIN_EMAIL || process.env.EMAIL,
+          to: process.env.ADMIN_EMAIL,
           subject: `New Inquiry from ${inquiry.name}`,
           html: `<h2>New Inquiry Received</h2>
                  <p><b>Name:</b> ${inquiry.name}</p>
                  <p><b>Email:</b> ${inquiry.email}</p>
-                 <p><b>Country:</b> ${inquiry.country || "N/A"}</p>
+                 <p><b>Country:</b> ${inquiry.country}</p>
                  <p><b>Message:</b> ${inquiry.message}</p>`
         });
 
-        // User confirmation email
+        // USER EMAIL
         await sendEmail({
           to: inquiry.email,
-          subject: "We received your inquiry — SMC",
+          subject: "We received your inquiry — Sagar Tourism",
           html: `<p>Hi ${inquiry.name},</p>
-                 <p>Thank you for contacting us. We have received your message and will get back soon.</p>`
+                 <p>Thank you for reaching out. Our team will contact you soon.</p>`
         });
+
       } catch (err) {
-        console.error("Email error:", err);
+        console.error("Resend error:", err);
       }
     });
 
@@ -54,3 +57,4 @@ export const createInquiry = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error." });
   }
 };
+
