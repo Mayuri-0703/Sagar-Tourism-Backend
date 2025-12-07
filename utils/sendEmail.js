@@ -1,19 +1,32 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const sendEmail = async ({ to, subject, html }) => {
   try {
-    const response = await resend.emails.send({
-      from: "Sagar Tourism <onboarding@resend.dev>",
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: process.env.EMAIL,
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+      },
+    });
+
+    const mailOptions = {
+      from: `Sagar Tourism <${process.env.EMAIL}>`,
       to,
       subject,
       html,
-    });
+    };
 
-    console.log("Email sent:", response);
-    return response;
+    const result = await transporter.sendMail(mailOptions);
+    console.log("EMAIL SENT:", result);
+    return result;
   } catch (error) {
-    console.error("Resend Email Error:", error);
+    console.error("EMAIL SEND ERROR:", error);
+    return null;
   }
 };
