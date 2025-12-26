@@ -1,22 +1,14 @@
-import { Resend } from "resend";
+import { sendEmail } from "./utils/sendEmail.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+sendEmail({
+  to: process.env.ADMIN_EMAIL,
+  subject: "Test OAuth2 Email",
+  html: "<h2>OAuth2 Gmail is working 🎉</h2>",
+}).then((res) => {
+  console.log("SUCCESS:", res);
+}).catch((err) => {
+  console.log("ERROR:", err);
+});
 
-async function test() {
-  try {
-    const data = await resend.emails.send({
-      from: "Sagar Tourism <onboarding@resend.dev>",
-      to: "yourpersonalemail@gmail.com",
-      subject: "Test email",
-      html: "<p>This is a test email</p>",
-    });
-
-    console.log("SUCCESS:", data);
-  } catch (err) {
-    console.error("ERROR:", err);
-  }
-}
-
-test();

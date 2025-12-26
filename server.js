@@ -1,26 +1,20 @@
 import express from "express";
-import dotenv from "dotenv";  // <<< ONLY ONE
+import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
-import "./config/cloudinaryConfig.js";  // loads cloudinary keys
+import "./config/cloudinaryConfig.js";
 
-dotenv.config(); // <<< ONLY ONE
+dotenv.config();
 
 const app = express();
 
 app.use(express.json());
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(cors());
 
-// Connect database
 connectDB();
 
-// Routes
 app.use("/api/inquiry", inquiryRoutes);
 app.use("/api/application", applicationRoutes);
 
