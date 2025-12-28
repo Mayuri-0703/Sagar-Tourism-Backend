@@ -1,12 +1,116 @@
+// import cloudinary from "../config/cloudinaryConfig.js";
+// import Application from "../models/applicationModel.js";
+// import { sendEmail } from "../utils/sendEmail.js";
+
+// export const handleApplication = async (req, res) => {
+//   try {
+//     console.log("BODY:", req.body);
+//     console.log("FILE:", req.file);
+
+//     const { fullName, email, phone, passportNumber } = req.body;
+
+//     if (!fullName || !email || !phone || !passportNumber) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
+
+//     if (!req.file) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Passport photo required",
+//       });
+//     }
+
+//     // Upload to Cloudinary
+//     const uploadResult = await new Promise((resolve, reject) => {
+//       cloudinary.uploader
+//         .upload_stream({ folder: "visa-applications" }, (err, result) => {
+//           if (err) reject(err);
+//           else resolve(result);
+//         })
+//         .end(req.file.buffer);
+//     });
+
+//     await Application.create({
+//       fullName,
+//       email,
+//       phone,
+//       passportNumber,
+//       passportPhoto: uploadResult.secure_url,
+//     });
+
+//     const html = `
+//       <h2>New Visa Application</h2>
+//       <p><b>Name:</b> ${fullName}</p>
+//       <p><b>Email:</b> ${email}</p>
+//       <p><b>Phone:</b> ${phone}</p>
+//       <p><b>Passport Number:</b> ${passportNumber}</p>
+//       <p><a href="${uploadResult.secure_url}">View Passport Photo</a></p>
+//     `;
+
+// //     await sendEmail(
+// //       process.env.ADMIN_EMAIL,
+// //       "New Visa Application Received",
+// //       html
+// //     );
+
+// //     await sendEmail(
+// //   email,
+// //   "Visa Application Submitted – SMC Tourism",
+// //   `
+// //     <h3>Dear ${fullName},</h3>
+// //     <p>Your visa application has been submitted successfully.</p>
+// //     <p>Our team will review your application and contact you soon.</p>
+// //     <br/>
+// //     <p>Regards,<br/>SMC Tourism</p>
+// //   `
+// // );
+
+// //     return res.json({ success: true });
+
+// const adminMail = await sendEmail(
+//   process.env.ADMIN_EMAIL,
+//   "New Visa Application Received",
+//   html
+// );
+
+// const userMail = await sendEmail(
+//   email,
+//   "Visa Application Submitted – SMC Tourism",
+//   `
+//     <h3>Dear ${fullName},</h3>
+//     <p>Your visa application has been submitted successfully.</p>
+//     <p>Our team will contact you shortly.</p>
+//     <br/>
+//     <p>Regards,<br/>SMC Tourism</p>
+//   `
+// );
+
+// if (!adminMail || !userMail) {
+//   return res.status(500).json({
+//     success: false,
+//     message: "Email delivery failed",
+//   });
+// }
+
+// return res.json({ success: true });
+//   } catch (error) {
+//     console.error("Application Error FULL:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//     });
+//   }
+// };
+
 import cloudinary from "../config/cloudinaryConfig.js";
 import Application from "../models/applicationModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
 export const handleApplication = async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
-
     const { fullName, email, phone, passportNumber } = req.body;
 
     if (!fullName || !email || !phone || !passportNumber) {
@@ -23,7 +127,7 @@ export const handleApplication = async (req, res) => {
       });
     }
 
-    // Upload to Cloudinary
+    // ⬆️ Upload passport to Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream({ folder: "visa-applications" }, (err, result) => {
@@ -33,6 +137,7 @@ export const handleApplication = async (req, res) => {
         .end(req.file.buffer);
     });
 
+    // ⬇️ Save to DB
     await Application.create({
       fullName,
       email,
@@ -41,7 +146,8 @@ export const handleApplication = async (req, res) => {
       passportPhoto: uploadResult.secure_url,
     });
 
-    const html = `
+    // ================= ADMIN EMAIL =================
+    const adminHtml = `
       <h2>New Visa Application</h2>
       <p><b>Name:</b> ${fullName}</p>
       <p><b>Email:</b> ${email}</p>
@@ -50,52 +156,37 @@ export const handleApplication = async (req, res) => {
       <p><a href="${uploadResult.secure_url}">View Passport Photo</a></p>
     `;
 
-//     await sendEmail(
-//       process.env.ADMIN_EMAIL,
-//       "New Visa Application Received",
-//       html
-//     );
+    const adminMailSent = await sendEmail(
+      process.env.ADMIN_EMAIL,
+      "New Visa Application – SMC Tourism",
+      adminHtml
+    );
 
-//     await sendEmail(
-//   email,
-//   "Visa Application Submitted – SMC Tourism",
-//   `
-//     <h3>Dear ${fullName},</h3>
-//     <p>Your visa application has been submitted successfully.</p>
-//     <p>Our team will review your application and contact you soon.</p>
-//     <br/>
-//     <p>Regards,<br/>SMC Tourism</p>
-//   `
-// );
+    // ================= USER CONFIRMATION EMAIL =================
+    const userHtml = `
+      <h3>Dear ${fullName},</h3>
+      <p>Your visa application has been submitted successfully.</p>
+      <p>Our team will review your documents and contact you soon.</p>
+      <br/>
+      <p>Regards,<br/><b>SMC Tourism</b></p>
+    `;
 
-//     return res.json({ success: true });
+    const userMailSent = await sendEmail(
+      email,
+      "Visa Application Received – SMC Tourism",
+      userHtml
+    );
 
-const adminMail = await sendEmail(
-  process.env.ADMIN_EMAIL,
-  "New Visa Application Received",
-  html
-);
+    // ================= CHECK MAIL STATUS =================
+    if (!adminMailSent || !userMailSent) {
+      return res.status(500).json({
+        success: false,
+        message: "Application saved but email delivery failed",
+      });
+    }
 
-const userMail = await sendEmail(
-  email,
-  "Visa Application Submitted – SMC Tourism",
-  `
-    <h3>Dear ${fullName},</h3>
-    <p>Your visa application has been submitted successfully.</p>
-    <p>Our team will contact you shortly.</p>
-    <br/>
-    <p>Regards,<br/>SMC Tourism</p>
-  `
-);
+    return res.json({ success: true });
 
-if (!adminMail || !userMail) {
-  return res.status(500).json({
-    success: false,
-    message: "Email delivery failed",
-  });
-}
-
-return res.json({ success: true });
   } catch (error) {
     console.error("Application Error FULL:", error);
     return res.status(500).json({
@@ -103,5 +194,4 @@ return res.json({ success: true });
       message: "Server error",
     });
   }
-};
-
+}
