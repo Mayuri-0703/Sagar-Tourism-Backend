@@ -30,18 +30,29 @@ await sendEmail(
 );
 
 // Send confirmation to User
-await sendEmail(
+// await sendEmail(
+//   email,
+//   "Inquiry Received – SMC Tourism",
+//   `
+//     <h3>Dear ${name},</h3>
+//     <p>Thank you for contacting SMC Tourism.</p>
+//     <p>We have received your inquiry regarding <b>${country}</b>.</p>
+//     <p>Our team will contact you shortly.</p>
+//     <br/>
+//     <p>Regards,<br/>SMC Tourism</p>
+//   `
+// );
+sendEmail(
   email,
   "Inquiry Received – SMC Tourism",
   `
     <h3>Dear ${name},</h3>
     <p>Thank you for contacting SMC Tourism.</p>
-    <p>We have received your inquiry regarding <b>${country}</b>.</p>
-    <p>Our team will contact you shortly.</p>
+    <p>We have received your inquiry and will get back to you shortly.</p>
     <br/>
     <p>Regards,<br/>SMC Tourism</p>
   `
-);
+).catch(err => console.error("Inquiry user mail error:", err.message));
 
 
     res.json({ success: true });

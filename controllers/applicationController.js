@@ -50,13 +50,36 @@ export const handleApplication = async (req, res) => {
       <p><a href="${uploadResult.secure_url}">View Passport Photo</a></p>
     `;
 
-    await sendEmail(
-      process.env.ADMIN_EMAIL,
-      "New Visa Application Received",
-      html
-    );
+//     await sendEmail(
+//       process.env.ADMIN_EMAIL,
+//       "New Visa Application Received",
+//       html
+//     );
 
-    await sendEmail(
+//     await sendEmail(
+//   email,
+//   "Visa Application Submitted – SMC Tourism",
+//   `
+//     <h3>Dear ${fullName},</h3>
+//     <p>Your visa application has been submitted successfully.</p>
+//     <p>Our team will review your application and contact you soon.</p>
+//     <br/>
+//     <p>Regards,<br/>SMC Tourism</p>
+//   `
+// );
+
+//     return res.json({ success: true });
+
+    return res.json({ success: true });
+
+// ---- DO EMAILS AFTER RESPONSE ----
+sendEmail(
+  process.env.ADMIN_EMAIL,
+  "New Visa Application Received",
+  html
+).catch(err => console.error("Admin mail error:", err.message));
+
+sendEmail(
   email,
   "Visa Application Submitted – SMC Tourism",
   `
@@ -66,15 +89,14 @@ export const handleApplication = async (req, res) => {
     <br/>
     <p>Regards,<br/>SMC Tourism</p>
   `
-);
+).catch(err => console.error("User mail error:", err.message));
 
-    return res.json({ success: true });
 
-  } catch (error) {
-    console.error("Application Error FULL:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
+//   } catch (error) {
+//     console.error("Application Error FULL:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//     });
+//   }
+// };
