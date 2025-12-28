@@ -92,11 +92,11 @@ sendEmail(
 ).catch(err => console.error("User mail error:", err.message));
 
 
-//   } catch (error) {
-//     console.error("Application Error FULL:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Server error",
-//     });
-//   }
-// };
+  } catch (error) {
+    console.error("Application Error FULL:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
