@@ -1,3 +1,4 @@
+
 // import nodemailer from "nodemailer";
 // import dotenv from "dotenv";
 // dotenv.config();
@@ -7,56 +8,44 @@
 //     const transporter = nodemailer.createTransport({
 //       service: "gmail",
 //       auth: {
-//         type: "OAuth2",
 //         user: process.env.EMAIL,
-//         clientId: process.env.CLIENT_ID,
-//         clientSecret: process.env.CLIENT_SECRET,
-//         refreshToken: process.env.REFRESH_TOKEN,
+//         pass: process.env.EMAIL_PASSWORD,
 //       },
 //     });
 
-//     const mailOptions = {
+//     await transporter.sendMail({
 //       from: `Sagar Tourism <${process.env.EMAIL}>`,
 //       to,
 //       subject,
 //       html,
-//     };
+//     });
 
-//     await transporter.sendMail(mailOptions);
-//     console.log("Email Sent Successfully →", to);
+//     console.log("✅ Email sent to:", to);
 //     return true;
 
-//   } catch (err) {
-//     console.error("EMAIL SEND FAILED:", err.message);
+//   } catch (error) {
+//     console.error("❌ EMAIL ERROR:", error.message);
 //     return false;
 //   }
 // };
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
+
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmail = async (to, subject, html) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `Sagar Tourism <${process.env.EMAIL}>`,
+    await resend.emails.send({
+      from: "Sagar Tourism <onboarding@resend.dev>",
       to,
       subject,
       html,
     });
 
-    console.log("✅ Email sent to:", to);
+    console.log("✅ Email sent");
     return true;
-
   } catch (error) {
-    console.error("❌ EMAIL ERROR:", error.message);
+    console.error("❌ EMAIL ERROR:", error);
     return false;
   }
 };
