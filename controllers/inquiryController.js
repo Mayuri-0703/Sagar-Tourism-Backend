@@ -5,7 +5,16 @@ export const createInquiry = async (req, res) => {
   try {
     const { name, email, phone, country, message } = req.body;
 
-    const inquiry = await Inquiry.create({
+    // ---- BASIC VALIDATION ----
+    if (!name || !email || !phone || !country || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // ---- SAVE TO DATABASE ----
+    await Inquiry.create({
       fullName: name,
       email,
       phone,
@@ -13,7 +22,8 @@ export const createInquiry = async (req, res) => {
       message,
     });
 
-    const html = `
+    // ---- ADMIN EMAIL ----
+    const adminHtml = `
       <h2>New Visa Inquiry</h2>
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Email:</strong> ${email}</p>
@@ -22,43 +32,44 @@ export const createInquiry = async (req, res) => {
       <p><strong>Message:</strong> ${message}</p>
     `;
 
-    // Send to Admin
-await sendEmail(
-  process.env.ADMIN_EMAIL,
-  "New Visa Inquiry",
-  html
-);
+    const adminMailSent = await sendEmail(
+      process.env.ADMIN_EMAIL,
+      "New Visa Inquiry – SMC Tourism",
+      adminHtml
+    );
 
-// Send confirmation to User
-// await sendEmail(
-//   email,
-//   "Inquiry Received – SMC Tourism",
-//   `
-//     <h3>Dear ${name},</h3>
-//     <p>Thank you for contacting SMC Tourism.</p>
-//     <p>We have received your inquiry regarding <b>${country}</b>.</p>
-//     <p>Our team will contact you shortly.</p>
-//     <br/>
-//     <p>Regards,<br/>SMC Tourism</p>
-//   `
-// );
-sendEmail(
-  email,
-  "Inquiry Received – SMC Tourism",
-  `
-    <h3>Dear ${name},</h3>
-    <p>Thank you for contacting SMC Tourism.</p>
-    <p>We have received your inquiry and will get back to you shortly.</p>
-    <br/>
-    <p>Regards,<br/>SMC Tourism</p>
-  `
-).catch(err => console.error("Inquiry user mail error:", err.message));
+    // ---- USER CONFIRMATION EMAIL ----
+    const userHtml = `
+      <h3>Dear ${name},</h3>
+      <p>Thank you for contacting <b>SMC Tourism</b>.</p>
+      <p>We have received your inquiry regarding <b>${country}</b>.</p>
+      <p>Our team will contact you shortly.</p>
+      <br/>
+      <p>Regards,<br/>SMC Tourism</p>
+    `;
 
+    const userMailSent = await sendEmail(
+      email,
+      "Inquiry Received – SMC Tourism",
+      userHtml
+    );
 
-    res.json({ success: true });
+    // ---- CHECK EMAIL STATUS ----
+    if (!adminMailSent || !userMailSent) {
+      return res.status(500).json({
+        success: false,
+        message: "Inquiry saved but email delivery failed",
+      });
+    }
+
+    // ---- SUCCESS RESPONSE ----
+    return res.json({ success: true });
 
   } catch (error) {
-    console.error("Inquiry Error:", error.message);
-    res.json({ success: false, message: error.message });
+    console.error("Inquiry Error FULL:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
