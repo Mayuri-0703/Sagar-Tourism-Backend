@@ -56,6 +56,18 @@ export const handleApplication = async (req, res) => {
       html
     );
 
+    await sendEmail(
+  email,
+  "Visa Application Submitted – SMC Tourism",
+  `
+    <h3>Dear ${fullName},</h3>
+    <p>Your visa application has been submitted successfully.</p>
+    <p>Our team will review your application and contact you soon.</p>
+    <br/>
+    <p>Regards,<br/>SMC Tourism</p>
+  `
+);
+
     return res.json({ success: true });
 
   } catch (error) {

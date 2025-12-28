@@ -22,7 +22,27 @@ export const createInquiry = async (req, res) => {
       <p><strong>Message:</strong> ${message}</p>
     `;
 
-    await sendEmail(process.env.ADMIN_EMAIL, "New Visa Inquiry", html);
+    // Send to Admin
+await sendEmail(
+  process.env.ADMIN_EMAIL,
+  "New Visa Inquiry",
+  html
+);
+
+// Send confirmation to User
+await sendEmail(
+  email,
+  "Inquiry Received – SMC Tourism",
+  `
+    <h3>Dear ${name},</h3>
+    <p>Thank you for contacting SMC Tourism.</p>
+    <p>We have received your inquiry regarding <b>${country}</b>.</p>
+    <p>Our team will contact you shortly.</p>
+    <br/>
+    <p>Regards,<br/>SMC Tourism</p>
+  `
+);
+
 
     res.json({ success: true });
 
